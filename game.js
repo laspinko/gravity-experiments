@@ -45,7 +45,7 @@ function planet(a,r){
 }
 var G=6.674*0.0000001;
 function gravity(a,b){
-    return G*a.m*b.m/dis(a.coord,b.coord);
+    return G*a.m*b.m/dis2(a.coord,b.coord);
 }
 
 function rand(a,b){
@@ -53,13 +53,19 @@ function rand(a,b){
 }
 
 
+class quadTree{
+    constructor(from,to,elements){
+        
+    }
+}
+
 
 var p=[];
-for(var i=0;i<7;i++){
+for(var i=0;i<10;i++){
     var coord = vec(rand(-width/2,width/2),rand(-height/2,height/2));
     var r = rand(5,20)
     p.push(planet(coord,r));
-    p.push(planet(sub(vec(0,0),coord),r));
+    //p.push(planet(sub(vec(0,0),coord),r));
 }
 
 window.addEventListener("keydown", function (args) {
