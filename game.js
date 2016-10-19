@@ -40,7 +40,7 @@ function proj(a,b){
     return mul(b,dot(a,b)/mag2(b));
 }
 
-function planet(a,r,m){
+function planet(a,r){
     return {coord:a,vel:vec(0,0),r:r,m:Math.PI * r * r};
 }
 var G=6.674*0.0000001;
@@ -56,7 +56,10 @@ function rand(a,b){
 
 var p=[];
 for(var i=0;i<7;i++){
-    p[i]=planet(vec(rand(-width/2,width/2),rand(-height/2,height/2)),rand(5,20),10);
+    var coord = vec(rand(-width/2,width/2),rand(-height/2,height/2));
+    var r = rand(5,20)
+    p.push(planet(coord,r));
+    p.push(planet(sub(vec(0,0),coord),r));
 }
 
 window.addEventListener("keydown", function (args) {
@@ -93,16 +96,16 @@ function update() {
         }
     }
     
-    var collVel = [];
-    
-    for(var i=0;i<p.length;i++){
-        collVel[i] = vec(0,0);  
-    }
     
     var collision;
     
     do{
         collision = false;
+        var collVel = [];
+
+        for(var i=0;i<p.length;i++){
+            collVel[i] = vec(0,0);  
+        }
         for(var i=0;i<p.length;i++){
             for(var j=0;j<p.length;j++){
                 if(i!=j && dis(p[i].coord,p[j].coord)<=p[i].r+p[j].r){
@@ -127,11 +130,11 @@ function update() {
             }
         }
 
+        for(var i=0;i<p.length;i++){
+            p[i].vel = add(p[i].vel,collVel[i]);
+        }
     }while(collision);
     
-    for(var i=0;i<p.length;i++){
-        p[i].vel = add(p[i].vel,collVel[i]);
-    }
     
     for(var i=0;i<p.length;i++){
         p[i].coord=add(p[i].coord,p[i].vel);
