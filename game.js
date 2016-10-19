@@ -41,9 +41,9 @@ function proj(a,b){
 }
 
 function planet(a,r,m){
-    return {coord:a,vel:vec(0,0),r:r,m:m};
+    return {coord:a,vel:vec(0,0),r:r,m:Math.PI * r * r};
 }
-var G=6.674*0.001;
+var G=6.674*0.0000001;
 function gravity(a,b){
     return G*a.m*b.m/dis(a.coord,b.coord);
 }
@@ -51,13 +51,14 @@ function gravity(a,b){
 function rand(a,b){
     return Math.random()*(b-a)+a;
 }
+
+
+
 var p=[];
 for(var i=0;i<7;i++){
     p[i]=planet(vec(rand(-width/2,width/2),rand(-height/2,height/2)),rand(5,20),10);
 }
-/*p[0]=planet(vec(0,0),50,10);
-p[1]=planet(vec(50,300),20,10);
-p[1].vel=vec(0,-10);*/
+
 window.addEventListener("keydown", function (args) {
     
 }, false);
@@ -75,6 +76,8 @@ window.addEventListener("mousemove", function (args) {
 window.addEventListener("mousedown", function (args) {
 }, false);
 
+var friction = false;
+
 function update() {
     draw();
     for(var i=0;i<p.length;i++){
@@ -84,30 +87,56 @@ function update() {
             }
         }
     }
+    if(friction){
+        for(var i=0;i<p.length;i++){
+            p[i].vel = mul(p[i].vel, 1-0.0001*Math.PI*p[i].r);
+        }
+    }
     
     var collVel = [];
     
     for(var i=0;i<p.length;i++){
         collVel[i] = vec(0,0);  
     }
-    for(var i=0;i<p.length;i++){
-        for(var j=0;j<p.length;j++){
-            if(i!=j && dis(p[i].coord,p[j].coord)<=p[i].r+p[j].r){
-                var k=sub(p[j].coord,p[i].coord);
-                var pr=proj(p[i].vel,k);
-                
-                collVel[j] = add(collVel[j],mul(pr,1));
-                collVel[i] = sub(collVel[i],mul(pr,1));
+    
+    var collision;
+    
+    do{
+        collision = false;
+        for(var i=0;i<p.length;i++){
+            for(var j=0;j<p.length;j++){
+                if(i!=j && dis(p[i].coord,p[j].coord)<=p[i].r+p[j].r){
+                    var k=sub(p[j].coord,p[i].coord);
+                    var pr=proj(p[i].vel,k);
+
+                    collVel[j] = add(collVel[j],pr);
+                    collVel[i] = sub(collVel[i],pr);
+                }
             }
         }
+
+
+        for(var i=0;i<p.length;i++){
+            for(var j=0;j<p.length;j++){
+                if(i!=j && dis(p[i].coord,p[j].coord)<=p[i].r+p[j].r){
+                    var k=mul(normalize(sub(p[j].coord, p[i].coord)) ,p[i].r + p[j].r - dis(p[i].coord,p[j].coord));
+                    p[i].coord = sub(p[i].coord, k);
+                    p[j].coord = add(p[j].coord, k);
+                    collision = true;
+                }
+            }
+        }
+
+    }while(collision);
+    
+    for(var i=0;i<p.length;i++){
+        p[i].vel = add(p[i].vel,collVel[i]);
     }
     
     for(var i=0;i<p.length;i++){
-        p[i].vel = add(p[i].vel,collVel[i]);  
-    }
-    for(var i=0;i<p.length;i++){
         p[i].coord=add(p[i].coord,p[i].vel);
     }
+    
 	setTimeout(update, 10);
 }
 function drawLine(a,b){
@@ -128,10 +157,10 @@ function draw() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     ctx.strokeRect(0, 0, canvas.width, canvas.height);
     ctx.globalAlpha = 1;
-    ctx.translate(width/2,height/2);
+    
+    ctx.fillRect(-1,-1,2,2);
     for(var i=0;i<p.length;i++){
-        circle(p[i].coord,p[i].r);
+        circle(add(p[i].coord,vec(width/2,height/2)),p[i].r);
     }
-    ctx.translate(-width/2,-height/2);
 }
 update();
